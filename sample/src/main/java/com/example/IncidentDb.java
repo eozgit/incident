@@ -47,7 +47,7 @@ public class IncidentDb {
         return id;
     }
 
-    public void updateIncident(int id, Incident incident) {
+    public void updateIncident(Incident incident) {
         String SQL = "UPDATE public.incident SET reviewer=?, complete_date=?, experiencing_concerns_listened_to=?, experiencing_satisfied=?, displaying_concerns_listened_to=?, displaying_satisfied=?, \"procedures\"=?, conclusion=? WHERE id=?;";
 
         try (Connection conn = DriverManager.getConnection(url, user, password);
@@ -61,7 +61,7 @@ public class IncidentDb {
             pstmt.setBoolean(6, incident.isDisplayingSatisfied());
             pstmt.setString(7, incident.getProcedures());
             pstmt.setInt(8, incident.getConclusion());
-            pstmt.setInt(9, id);
+            pstmt.setInt(9, incident.getId());
 
             pstmt.executeUpdate();
 

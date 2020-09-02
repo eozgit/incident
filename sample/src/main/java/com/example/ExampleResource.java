@@ -15,7 +15,7 @@ public class ExampleResource implements RequestHandler<InputObject, OutputObject
                 db.insertIncident(input.getIncident());
                 break;
             case "update":
-                db.updateIncident(0, input.getIncident());
+                db.updateIncident(input.getIncident());
                 break;
         }
 
