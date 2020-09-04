@@ -15,7 +15,7 @@ public class IncidentDb {
     private final String password = "ENZy2Br9hGkG52ztqpg3";
 
     public int insertIncident(Incident incident) {
-        String incidentSQL = "INSERT INTO public.incident (reported_to, \"location\", incident_date, reported_by, nature, detail) VALUES(?, ?, ?, ?, ?, ?);";
+        String incidentSQL = "INSERT INTO public.incident (reported_to, \"location\", incident_date, reported_by, nature, detail, conclusion) VALUES(?, ?, ?, ?, ?, ?, 0);";
         String personSQL = "INSERT INTO public.person (\"name\", category, incident_id, side) VALUES(?, ?, ?, ?);";
 
         int id = 0;
