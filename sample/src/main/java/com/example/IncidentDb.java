@@ -15,32 +15,67 @@ public class IncidentDb {
     private final String password = "ENZy2Br9hGkG52ztqpg3";
 
     public int insertIncident(Incident incident) {
-        String SQL = "INSERT INTO public.incident (reported_to, \"location\", incident_date, reported_by, nature, detail) VALUES(?, ?, ?, ?, ?, ?);";
+        String incidentSQL = "INSERT INTO public.incident (reported_to, \"location\", incident_date, reported_by, nature, detail) VALUES(?, ?, ?, ?, ?, ?);";
+        String personSQL = "INSERT INTO public.person (\"name\", category, incident_id, side) VALUES(?, ?, ?, ?);";
 
         int id = 0;
 
         try (Connection conn = DriverManager.getConnection(url, user, password);
-                PreparedStatement pstmt = conn.prepareStatement(SQL, Statement.RETURN_GENERATED_KEYS)) {
+                PreparedStatement psIncident = conn.prepareStatement(incidentSQL, Statement.RETURN_GENERATED_KEYS);
+                PreparedStatement psPersons = conn.prepareStatement(personSQL, Statement.RETURN_GENERATED_KEYS)) {
 
-            pstmt.setString(1, incident.getReportedTo());
-            pstmt.setString(2, incident.getLocation());
-            pstmt.setTimestamp(3, incident.getIncidentDate());
-            pstmt.setString(4, incident.getReportedBy());
-            pstmt.setString(5, incident.getNature());
-            pstmt.setString(6, incident.getDetail());
+            psIncident.setString(1, incident.getReportedTo());
+            psIncident.setString(2, incident.getLocation());
+            psIncident.setTimestamp(3, incident.getIncidentDate());
+            psIncident.setString(4, incident.getReportedBy());
+            psIncident.setString(5, incident.getNature());
+            psIncident.setString(6, incident.getDetail());
 
-            int affectedRows = pstmt.executeUpdate();
+            int affectedRows = psIncident.executeUpdate();
 
             if (affectedRows > 0) {
 
-                try (ResultSet rs = pstmt.getGeneratedKeys()) {
+                try (ResultSet rs = psIncident.getGeneratedKeys()) {
                     if (rs.next()) {
                         id = rs.getInt(1);
                     }
                 } catch (SQLException ex) {
                     System.out.println(ex.getMessage());
                 }
+
+                for (Person experiencingPupil : incident.getPupilsExperiencing()) {
+                    psPersons.setString(1, experiencingPupil.getName());
+                    psPersons.setString(2, "pupil");
+                    psPersons.setInt(3, id);
+                    psPersons.setString(4, "experiencing");
+                    psPersons.executeUpdate();
+                }
+
+                for (Person experiencingStaff : incident.getStaffExperiencing()) {
+                    psPersons.setString(1, experiencingStaff.getName());
+                    psPersons.setString(2, "staff");
+                    psPersons.setInt(3, id);
+                    psPersons.setString(4, "experiencing");
+                    psPersons.executeUpdate();
+                }
+
+                for (Person displayingPupil : incident.getPupilsDisplaying()) {
+                    psPersons.setString(1, displayingPupil.getName());
+                    psPersons.setString(2, "pupil");
+                    psPersons.setInt(3, id);
+                    psPersons.setString(4, "displaying");
+                    psPersons.executeUpdate();
+                }
+
+                for (Person displayingStaff : incident.getStaffDisplaying()) {
+                    psPersons.setString(1, displayingStaff.getName());
+                    psPersons.setString(2, "staff");
+                    psPersons.setInt(3, id);
+                    psPersons.setString(4, "displaying");
+                    psPersons.executeUpdate();
+                }
             }
+
         } catch (SQLException ex) {
             System.out.println(ex.getMessage());
         }
@@ -71,14 +106,17 @@ public class IncidentDb {
     }
 
     public List<Incident> getIncidents() {
-        String SQL = "SELECT id, reported_to, \"location\", incident_date, reported_by, nature, detail, reviewer, complete_date, experiencing_concerns_listened_to, experiencing_satisfied, displaying_concerns_listened_to, displaying_satisfied, \"procedures\", conclusion FROM public.incident;";
+        String incidentsSQL = "SELECT id, reported_to, \"location\", incident_date, reported_by, nature, detail, reviewer, complete_date, experiencing_concerns_listened_to, experiencing_satisfied, displaying_concerns_listened_to, displaying_satisfied, \"procedures\", conclusion FROM public.incident;";
+        String personsSQL = "SELECT id, name, category, \"action\", incident_id, side FROM public.person;";
 
         List<Incident> incidents = new LinkedList<Incident>();
+        List<Person> persons = new LinkedList<Person>();
 
         try (Connection conn = DriverManager.getConnection(url, user, password);
-                PreparedStatement pstmt = conn.prepareStatement(SQL, Statement.RETURN_GENERATED_KEYS)) {
+                PreparedStatement psIncidents = conn.prepareStatement(incidentsSQL, Statement.RETURN_GENERATED_KEYS);
+                PreparedStatement psPersons = conn.prepareStatement(personsSQL, Statement.RETURN_GENERATED_KEYS)) {
 
-            ResultSet rs = pstmt.executeQuery();
+            ResultSet rs = psIncidents.executeQuery();
 
             while (rs.next()) {
                 Incident incident = new Incident();
@@ -92,9 +130,64 @@ public class IncidentDb {
                 incidents.add(incident);
             }
             rs.close();
+
+            rs = psPersons.executeQuery();
+
+            while (rs.next()) {
+                Person person = new Person();
+                person.setId(rs.getInt("id"));
+                person.setName(rs.getString("name"));
+                person.setCategory(rs.getString("category"));
+                person.setAction(rs.getString("action"));
+                person.setIncidentId(rs.getInt("incident_id"));
+                person.setSide(rs.getString("side"));
+                persons.add(person);
+            }
+            rs.close();
         } catch (SQLException ex) {
             System.out.println(ex.getMessage());
         }
+
+        Match(incidents, persons);
+
         return incidents;
+    }
+
+    private void Match(List<Incident> incidents, List<Person> persons) {
+        for (Person person : persons) {
+            Incident incident = GetIncidentById(incidents, person.getIncidentId());
+            if (incident != null) {
+                if (person.getCategory().equals("pupil")) {
+                    if (person.getSide().equals("experiencing")) {
+                        List<Person> pupilsExperiencing = incident.getPupilsExperiencing();
+                        pupilsExperiencing.add(person);
+                        incident.setPupilsExperiencing(pupilsExperiencing);
+                    } else {
+                        List<Person> pupilsDisplaying = incident.getPupilsDisplaying();
+                        pupilsDisplaying.add(person);
+                        incident.setPupilsDisplaying(pupilsDisplaying);
+                    }
+                } else {
+                    if (person.getSide().equals("experiencing")) {
+                        List<Person> staffExperiencing = incident.getStaffExperiencing();
+                        staffExperiencing.add(person);
+                        incident.setStaffExperiencing(staffExperiencing);
+                    } else {
+                        List<Person> staffDisplaying = incident.getStaffDisplaying();
+                        staffDisplaying.add(person);
+                        incident.setStaffDisplaying(staffDisplaying);
+                    }
+                }
+            }
+        }
+    }
+
+    private Incident GetIncidentById(List<Incident> incidents, int incidentId) {
+        for (Incident incident : incidents) {
+            if (incident.getId() == incidentId) {
+                return incident;
+            }
+        }
+        return null;
     }
 }
