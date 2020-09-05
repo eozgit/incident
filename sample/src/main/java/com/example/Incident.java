@@ -22,10 +22,7 @@ public class Incident {
     private String procedures;
     private String conclusion;
 
-    private List<Person> pupilsExperiencing = new LinkedList<Person>();
-    private List<Person> staffExperiencing = new LinkedList<Person>();
-    private List<Person> pupilsDisplaying = new LinkedList<Person>();
-    private List<Person> staffDisplaying = new LinkedList<Person>();
+    private List<Person> parties = new LinkedList<Person>();
 
     public int getId() {
         return id;
@@ -147,35 +144,11 @@ public class Incident {
         this.conclusion = conclusion;
     }
 
-    public List<Person> getStaffDisplaying() {
-        return staffDisplaying;
+    public List<Person> getParties() {
+        return parties;
     }
 
-    public void setStaffDisplaying(List<Person> staffDisplaying) {
-        this.staffDisplaying = staffDisplaying;
-    }
-
-    public List<Person> getPupilsDisplaying() {
-        return pupilsDisplaying;
-    }
-
-    public void setPupilsDisplaying(List<Person> pupilsDisplaying) {
-        this.pupilsDisplaying = pupilsDisplaying;
-    }
-
-    public List<Person> getStaffExperiencing() {
-        return staffExperiencing;
-    }
-
-    public void setStaffExperiencing(List<Person> staffExperiencing) {
-        this.staffExperiencing = staffExperiencing;
-    }
-
-    public List<Person> getPupilsExperiencing() {
-        return pupilsExperiencing;
-    }
-
-    public void setPupilsExperiencing(List<Person> pupilsExperiencing) {
-        this.pupilsExperiencing = pupilsExperiencing;
+    public void setParties(List<Person> parties) {
+        this.parties = parties;
     }
 }

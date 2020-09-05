@@ -43,35 +43,11 @@ public class IncidentDb {
                     System.out.println(ex.getMessage());
                 }
 
-                for (Person experiencingPupil : incident.getPupilsExperiencing()) {
-                    psPersons.setString(1, experiencingPupil.getName());
-                    psPersons.setString(2, "pupil");
+                for (Person person : incident.getParties()) {
+                    psPersons.setString(1, person.getName());
+                    psPersons.setString(2, person.getCategory());
                     psPersons.setInt(3, id);
-                    psPersons.setString(4, "experiencing");
-                    psPersons.executeUpdate();
-                }
-
-                for (Person experiencingStaff : incident.getStaffExperiencing()) {
-                    psPersons.setString(1, experiencingStaff.getName());
-                    psPersons.setString(2, "staff");
-                    psPersons.setInt(3, id);
-                    psPersons.setString(4, "experiencing");
-                    psPersons.executeUpdate();
-                }
-
-                for (Person displayingPupil : incident.getPupilsDisplaying()) {
-                    psPersons.setString(1, displayingPupil.getName());
-                    psPersons.setString(2, "pupil");
-                    psPersons.setInt(3, id);
-                    psPersons.setString(4, "displaying");
-                    psPersons.executeUpdate();
-                }
-
-                for (Person displayingStaff : incident.getStaffDisplaying()) {
-                    psPersons.setString(1, displayingStaff.getName());
-                    psPersons.setString(2, "staff");
-                    psPersons.setInt(3, id);
-                    psPersons.setString(4, "displaying");
+                    psPersons.setString(4, person.getSide());
                     psPersons.executeUpdate();
                 }
             }
@@ -83,22 +59,31 @@ public class IncidentDb {
     }
 
     public void updateIncident(Incident incident) {
-        String SQL = "UPDATE public.incident SET reviewer=?, complete_date=?, experiencing_concerns_listened_to=?, experiencing_satisfied=?, displaying_concerns_listened_to=?, displaying_satisfied=?, \"procedures\"=?, conclusion=? WHERE id=?;";
+        String incidentSQL = "UPDATE public.incident SET reviewer=?, complete_date=?, experiencing_concerns_listened_to=?, experiencing_satisfied=?, displaying_concerns_listened_to=?, displaying_satisfied=?, \"procedures\"=?, conclusion=? WHERE id=?;";
+        String personSQL = "UPDATE public.person SET \"action\"=? WHERE id=?;";
 
         try (Connection conn = DriverManager.getConnection(url, user, password);
-                PreparedStatement pstmt = conn.prepareStatement(SQL, Statement.RETURN_GENERATED_KEYS)) {
+                PreparedStatement incidentPs = conn.prepareStatement(incidentSQL, Statement.RETURN_GENERATED_KEYS);
+                PreparedStatement personPs = conn.prepareStatement(personSQL, Statement.RETURN_GENERATED_KEYS)) {
 
-            pstmt.setString(1, incident.getReviewer());
-            pstmt.setDate(2, incident.getCompleteDate());
-            pstmt.setBoolean(3, incident.isExperiencingConcernsListenedTo());
-            pstmt.setBoolean(4, incident.isExperiencingSatisfied());
-            pstmt.setBoolean(5, incident.isDisplayingConcernsListenedTo());
-            pstmt.setBoolean(6, incident.isDisplayingSatisfied());
-            pstmt.setString(7, incident.getProcedures());
-            pstmt.setString(8, incident.getConclusion());
-            pstmt.setInt(9, incident.getId());
+            incidentPs.setString(1, incident.getReviewer());
+            incidentPs.setDate(2, incident.getCompleteDate());
+            incidentPs.setBoolean(3, incident.isExperiencingConcernsListenedTo());
+            incidentPs.setBoolean(4, incident.isExperiencingSatisfied());
+            incidentPs.setBoolean(5, incident.isDisplayingConcernsListenedTo());
+            incidentPs.setBoolean(6, incident.isDisplayingSatisfied());
+            incidentPs.setString(7, incident.getProcedures());
+            incidentPs.setString(8, incident.getConclusion());
+            incidentPs.setInt(9, incident.getId());
 
-            pstmt.executeUpdate();
+            incidentPs.executeUpdate();
+
+            for (Person person : incident.getParties()) {
+                personPs.setString(1, person.getAction());
+                personPs.setInt(2, person.getId());
+
+                personPs.executeUpdate();
+            }
 
         } catch (SQLException ex) {
             System.out.println(ex.getMessage());
@@ -165,27 +150,10 @@ public class IncidentDb {
         for (Person person : persons) {
             Incident incident = GetIncidentById(incidents, person.getIncidentId());
             if (incident != null) {
-                if (person.getCategory().equals("pupil")) {
-                    if (person.getSide().equals("experiencing")) {
-                        List<Person> pupilsExperiencing = incident.getPupilsExperiencing();
-                        pupilsExperiencing.add(person);
-                        incident.setPupilsExperiencing(pupilsExperiencing);
-                    } else {
-                        List<Person> pupilsDisplaying = incident.getPupilsDisplaying();
-                        pupilsDisplaying.add(person);
-                        incident.setPupilsDisplaying(pupilsDisplaying);
-                    }
-                } else {
-                    if (person.getSide().equals("experiencing")) {
-                        List<Person> staffExperiencing = incident.getStaffExperiencing();
-                        staffExperiencing.add(person);
-                        incident.setStaffExperiencing(staffExperiencing);
-                    } else {
-                        List<Person> staffDisplaying = incident.getStaffDisplaying();
-                        staffDisplaying.add(person);
-                        incident.setStaffDisplaying(staffDisplaying);
-                    }
-                }
+
+                List<Person> parties = incident.getParties();
+                parties.add(person);
+                incident.setParties(parties);
             }
         }
     }
