@@ -15,7 +15,7 @@ public class IncidentDb {
     private final String password = "ENZy2Br9hGkG52ztqpg3";
 
     public int insertIncident(Incident incident) {
-        String incidentSQL = "INSERT INTO public.incident (reported_to, \"location\", incident_date, reported_by, nature, detail, conclusion) VALUES(?, ?, ?, ?, ?, ?, 0);";
+        String incidentSQL = "INSERT INTO public.incident (reported_to, \"location\", incident_date, reported_by, nature, detail) VALUES(?, ?, ?, ?, ?, ?);";
         String personSQL = "INSERT INTO public.person (\"name\", category, incident_id, side) VALUES(?, ?, ?, ?);";
 
         int id = 0;
@@ -95,7 +95,7 @@ public class IncidentDb {
             pstmt.setBoolean(5, incident.isDisplayingConcernsListenedTo());
             pstmt.setBoolean(6, incident.isDisplayingSatisfied());
             pstmt.setString(7, incident.getProcedures());
-            pstmt.setInt(8, incident.getConclusion());
+            pstmt.setString(8, incident.getConclusion());
             pstmt.setInt(9, incident.getId());
 
             pstmt.executeUpdate();
@@ -127,6 +127,14 @@ public class IncidentDb {
                 incident.setReportedBy(rs.getString("reported_by"));
                 incident.setNature(rs.getString("nature"));
                 incident.setDetail(rs.getString("detail"));
+                incident.setReviewer(rs.getString("reviewer"));
+                incident.setCompleteDate(rs.getDate("complete_date"));
+                incident.setExperiencingConcernsListenedTo(rs.getBoolean("experiencing_concerns_listened_to"));
+                incident.setExperiencingSatisfied(rs.getBoolean("experiencing_satisfied"));
+                incident.setDisplayingConcernsListenedTo(rs.getBoolean("displaying_concerns_listened_to"));
+                incident.setDisplayingSatisfied(rs.getBoolean("displaying_satisfied"));
+                incident.setProcedures(rs.getString("procedures"));
+                incident.setConclusion(rs.getString("conclusion"));
                 incidents.add(incident);
             }
             rs.close();

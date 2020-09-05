@@ -20,7 +20,7 @@ public class Incident {
     private boolean displayingConcernsListenedTo;
     private boolean displayingSatisfied;
     private String procedures;
-    private int conclusion;
+    private String conclusion;
 
     private List<Person> pupilsExperiencing = new LinkedList<Person>();
     private List<Person> staffExperiencing = new LinkedList<Person>();
@@ -139,11 +139,11 @@ public class Incident {
         this.procedures = procedures;
     }
 
-    public int getConclusion() {
+    public String getConclusion() {
         return conclusion;
     }
 
-    public void setConclusion(int conclusion) {
+    public void setConclusion(String conclusion) {
         this.conclusion = conclusion;
     }
 
