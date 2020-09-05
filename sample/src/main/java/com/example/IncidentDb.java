@@ -9,10 +9,15 @@ import java.sql.Statement;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+
 public class IncidentDb {
-    private final String url = "jdbc:postgresql://incident-database-2.cbxuuegomn9j.us-east-1.rds.amazonaws.com/info";
-    private final String user = "postgres";
-    private final String password = "ENZy2Br9hGkG52ztqpg3";
+    @ConfigProperty(name = "quarkus.datasource.jdbc.url")
+    private String url;
+    @ConfigProperty(name = "quarkus.datasource.username")
+    private String user;
+    @ConfigProperty(name = "quarkus.datasource.password")
+    private String password;
 
     public int insertIncident(Incident incident) {
         String incidentSQL = "INSERT INTO public.incident (reported_to, \"location\", incident_date, reported_by, nature, detail) VALUES(?, ?, ?, ?, ?, ?);";
