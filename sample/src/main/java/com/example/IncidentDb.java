@@ -98,8 +98,8 @@ public class IncidentDb {
     }
 
     public List<Incident> getIncidents() {
-        String incidentsSQL = "SELECT id, reported_to, \"location\", incident_date, reported_by, nature, detail, reviewer, complete_date, experiencing_concerns_listened_to, experiencing_satisfied, displaying_concerns_listened_to, displaying_satisfied, \"procedures\", conclusion FROM public.incident;";
-        String personsSQL = "SELECT id, name, category, \"action\", incident_id, side FROM public.person;";
+        String incidentsSQL = "SELECT id, reported_to, \"location\", incident_date, reported_by, nature, detail, reviewer, complete_date, experiencing_concerns_listened_to, experiencing_satisfied, displaying_concerns_listened_to, displaying_satisfied, \"procedures\", conclusion FROM public.incident order by id desc;";
+        String personsSQL = "SELECT id, name, category, \"action\", incident_id, side FROM public.person order by id desc;";
 
         List<Incident> incidents = new LinkedList<Incident>();
         List<Person> persons = new LinkedList<Person>();
